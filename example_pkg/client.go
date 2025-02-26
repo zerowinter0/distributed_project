@@ -39,6 +39,7 @@ func client(name string, namePeer string, address string, message string) error 
 	// 创建Protobuf消息
 	msg := &gen.MyMessage{Content: message}
 
+	watchAppendMessage(fmt.Sprintf("%s %s", name, msg))
 	err = writeMsg(name, writer, msg)
 	if err != nil {
 		return err

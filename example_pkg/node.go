@@ -35,7 +35,8 @@ func node(
 	runServer(name, thisAddr.Port)
 }
 
-func getInputAndSend(name string,
+func getInputAndSend(
+	name string,
 	name2addr map[string]Address,
 ) {
 	message := fmt.Sprintf("node %s message", name)

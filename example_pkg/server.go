@@ -59,6 +59,7 @@ func _handleClient(name string, conn net.Conn) error {
 
 		log.Println(name, "received message: ", msg.Content)
 
+		watchAppendMessage(fmt.Sprintf("%s %s", name, msg))
 		// 将消息内容回显给客户端
 		response := &gen.MyMessage{Content: msg.Content}
 		err = writeMsg(name, writer, response)
