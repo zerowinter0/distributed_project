@@ -2,16 +2,24 @@ package example_pkg
 
 import (
 	"fmt"
+	"github.com/BurntSushi/toml"
 	"log"
 	"sync"
 )
 
+func NewNode(cfgPath string) {
+	var cfg Cfg
+	fmt.Println("read cfg from path:", cfgPath)
+	if _, err := toml.DecodeFile(cfgPath, &cfg); err != nil {
+		panic(err)
+	}
+
+	node(cfg.Name, cfg.Name2Addr(), cfg.IsClient, nil)
+}
+
 func node(
 	name string,
-	name2addr map[string]struct {
-		ip   string
-		port uint16
-	},
+	name2addr map[string]Address,
 	client bool,
 	ch *chan bool,
 ) {
@@ -24,14 +32,11 @@ func node(
 			}
 		}()
 	}
-	runServer(name, thisAddr.port)
+	runServer(name, thisAddr.Port)
 }
 
 func getInputAndSend(name string,
-	name2addr map[string]struct {
-		ip   string
-		port uint16
-	},
+	name2addr map[string]Address,
 ) {
 	message := fmt.Sprintf("node %s message", name)
 	log.Println("node", name, "sending message:", message)
@@ -40,7 +45,7 @@ func getInputAndSend(name string,
 	//发消息给所有其它节点
 	for namePeer, ipAndPort := range name2addr {
 		if namePeer != name {
-			addr := fmt.Sprintf("%s:%d", ipAndPort.ip, ipAndPort.port)
+			addr := fmt.Sprintf("%s:%d", ipAndPort.IP, ipAndPort.Port)
 			wg.Add(1)
 			go func() {
 				defer wg.Done()

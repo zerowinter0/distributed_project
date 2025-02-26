@@ -1,10 +1,14 @@
 package main
 
 import (
-	"fmt"
-	"github.com/dasedb/dist/example_pkg"
+	"example_pkg"
+	"flag"
 )
 
 func main() {
-	fmt.Println("Hello and welcome")
+	var path string
+	flag.StringVar(&path, "path", "./cfg.toml", "a cfg file path")
+	flag.Parse()
+
+	example_pkg.NewNode(path)
 }

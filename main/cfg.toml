@@ -1,0 +1,17 @@
+name = "node1"
+is_client = true
+
+[[peers]]
+  name = "node1"
+  ip = "127.0.0.1"
+  port = 8081
+
+[[peers]]
+  name = "node2"
+  ip = "127.0.0.1"
+  port = 8082
+
+[[peers]]
+  name = "node3"
+  ip = "127.0.0.1"
+  port = 8083
