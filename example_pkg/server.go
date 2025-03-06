@@ -13,8 +13,6 @@ func server(name string, port uint16) error {
 
 	kv_map := NewSafeMap(name)
 
-	//todo:recover
-
 	listen, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
 	if err != nil {
 		log.Println("Error listening:", err.Error())

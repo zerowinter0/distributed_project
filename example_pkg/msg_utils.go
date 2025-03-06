@@ -3,12 +3,14 @@ package example_pkg
 
 import (
 	"bufio"
-	"google.golang.org/protobuf/proto"
 	"io"
 	"log"
+
+	"google.golang.org/protobuf/proto"
 )
 
 func readMsg(name string, reader *bufio.Reader, msg proto.Message) error {
+	//todo:延迟or未收到
 	// 读取消息长度
 	lenBuf := make([]byte, 4)
 	_, err := io.ReadFull(reader, lenBuf)

@@ -42,6 +42,19 @@ func getInputAndSend(
 ) {
 	master_map := NewSafeMap(name)
 
+	//todo:recover
+	for k, v := range master_map.data {
+		msg := encode_kv(k, v.value, v.serial_number)
+		for namePeer, ipAndPort := range name2addr {
+			if namePeer != name {
+				addr := fmt.Sprintf("%s:%d", ipAndPort.IP, ipAndPort.Port)
+				go func() {
+					runClient(name, namePeer, addr, msg, 0)
+				}()
+			}
+		}
+	}
+
 	fmt.Println("master node waiting for input...")
 
 	serial_number := master_map.max_serial_number
@@ -50,6 +63,9 @@ func getInputAndSend(
 		var key string
 		var value string
 		fmt.Scanln(&key, &value)
+		if key == "" || value == "" {
+			continue
+		}
 		var msg string
 		query_type := 0
 		if key == "query" {
