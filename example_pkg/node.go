@@ -2,9 +2,9 @@ package example_pkg
 
 import (
 	"fmt"
-	"github.com/BurntSushi/toml"
 	"log"
-	"sync"
+
+	"github.com/BurntSushi/toml"
 )
 
 func NewNode(cfgPath string) {
@@ -31,35 +31,54 @@ func node(
 				*ch <- true
 			}
 		}()
+	} else {
+		runServer(name, thisAddr.Port)
 	}
-	runServer(name, thisAddr.Port)
 }
 
 func getInputAndSend(
 	name string,
 	name2addr map[string]Address,
 ) {
-	message := fmt.Sprintf("node %s message", name)
-	log.Println("node", name, "sending message:", message)
+	master_map := NewSafeMap(name)
 
-	wg := sync.WaitGroup{}
-	//发消息给所有其它节点
-	for namePeer, ipAndPort := range name2addr {
-		if namePeer != name {
-			addr := fmt.Sprintf("%s:%d", ipAndPort.IP, ipAndPort.Port)
-			wg.Add(1)
-			go func() {
-				defer wg.Done()
-				runClient(name, namePeer, addr, message)
-			}()
+	fmt.Println("master node waiting for input...")
 
+	serial_number := master_map.max_serial_number
+
+	for {
+		var key string
+		var value string
+		fmt.Scanln(&key, &value)
+		var msg string
+		query_type := 0
+		if key == "query" {
+			msg = encode_request(value)
+			query_type = 1
+			master_ans, _ := master_map.Query(value)
+			fmt.Println("master node answer:" + master_ans)
+		} else {
+			msg = encode_kv(key, value, serial_number)
+			master_map.Insert(key, value, serial_number)
+		}
+
+		serial_number += 1
+
+		for namePeer, ipAndPort := range name2addr {
+			if namePeer != name {
+				addr := fmt.Sprintf("%s:%d", ipAndPort.IP, ipAndPort.Port)
+
+				go func() {
+					runClient(name, namePeer, addr, msg, query_type)
+				}()
+
+			}
 		}
 	}
-	wg.Wait()
 }
 
-func runClient(name string, namePeer string, address string, message string) {
-	err := client(name, namePeer, address, message)
+func runClient(name string, namePeer string, address string, message string, query_type int) {
+	err := client(name, namePeer, address, message, query_type)
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -1,9 +1,10 @@
 package example_pkg
 
 import (
-	"github.com/BurntSushi/toml"
 	"os"
 	"testing"
+
+	"github.com/BurntSushi/toml"
 )
 
 func TestCfg(t *testing.T) {
@@ -16,7 +17,7 @@ func TestCfg(t *testing.T) {
 		},
 		IsClient: true,
 	}
-	file, err := os.OpenFile("/tmp/cfg.toml", os.O_WRONLY|os.O_CREATE, 0600)
+	file, err := os.OpenFile("D:/go_project/cfg.toml", os.O_WRONLY|os.O_CREATE, 0600)
 	if err != nil {
 		panic(err)
 	}
@@ -27,7 +28,7 @@ func TestCfg(t *testing.T) {
 	if err != nil {
 		panic(err)
 	}
-	if _, err := toml.DecodeFile("/tmp/cfg.toml", &cfg); err != nil {
+	if _, err := toml.DecodeFile("D:/go_project/cfg.toml", &cfg); err != nil {
 		panic(err)
 	}
 }

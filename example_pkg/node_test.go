@@ -58,7 +58,7 @@ func TestNode(t *testing.T) {
 	for i := 0; i < n; i++ {
 		name := fmt.Sprintf("n_%d", i+1)
 		ip := "127.0.0.1"
-		port := uint16(8080) + uint16(i) + 1
+		port := uint16(12000) + uint16(i) + 1
 		name2addr[name] = Address{
 			IP:   ip,
 			Port: port,
@@ -68,13 +68,20 @@ func TestNode(t *testing.T) {
 	chDone := make(chan bool, 1)
 	for name := range name2addr {
 		//只有n1接收输入
-		isClient := name == "n_1"
+		if name == "n_1" {
+			continue
+		}
 		go func(nodeName string,
 			name2addr map[string]Address,
 			isClient bool) {
 			node(name, name2addr, isClient, &chDone)
-		}(name, name2addr, isClient)
+		}(name, name2addr, false)
+	}
+	for name := range name2addr {
+		if name == "n_1" {
+			node(name, name2addr, true, &chDone)
+		}
 	}
 	_ = <-chDone
-	time.Sleep(time.Duration(10) * time.Second)
+	time.Sleep(time.Duration(60) * time.Second)
 }

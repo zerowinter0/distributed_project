@@ -2,28 +2,19 @@ package example_pkg
 
 import (
 	"bufio"
-	"errors"
 	"example_pkg/gen"
 	"fmt"
-	"log"
 	"net"
-	"syscall"
 	"time"
 )
 
-func client(name string, namePeer string, address string, message string) error {
+func client(name string, namePeer string, address string, message string, query_type int) error {
 	var conn net.Conn
 	var err error
 	for {
 		conn, err = net.Dial("tcp", address)
 		if err != nil {
-			if errors.Is(err, syscall.ECONNREFUSED) {
-				// 超时，重试
-				time.Sleep(time.Duration(1000) * time.Millisecond)
-			} else {
-				fmt.Println("Error connecting:", err.Error())
-				return err
-			}
+			time.Sleep(time.Duration(1000) * time.Millisecond)
 		} else {
 			break
 		}
@@ -50,6 +41,8 @@ func client(name string, namePeer string, address string, message string) error 
 	if err != nil {
 		return err
 	}
-	log.Println(name, "receives response from peer", namePeer, "message:", msg.Content)
+	if query_type == 1 {
+		fmt.Println("node " + name + ": " + msg.Content)
+	}
 	return nil
 }
