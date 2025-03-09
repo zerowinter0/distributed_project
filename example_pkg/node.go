@@ -5,6 +5,7 @@ import (
 	"github.com/BurntSushi/toml"
 	"log"
 	"sync"
+	"time"
 )
 
 func NewNode(cfgPath string) {
@@ -43,6 +44,8 @@ func getInputAndSend(
 	log.Println("node", name, "sending message:", message)
 
 	wg := sync.WaitGroup{}
+	time.Sleep(time.Duration(10) * time.Second)
+
 	//发消息给所有其它节点
 	for namePeer, ipAndPort := range name2addr {
 		if namePeer != name {
