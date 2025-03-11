@@ -10,6 +10,9 @@ import (
 )
 
 func server(name string, port uint16) error {
+
+	kv_map := NewSafeMap(name)
+
 	listen, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
 	if err != nil {
 		log.Println("Error listening:", err.Error())
@@ -19,8 +22,6 @@ func server(name string, port uint16) error {
 		_ = listen.Close()
 	}(listen)
 
-	log.Printf("Server %s is listening on port %d...\n", name, port)
-
 	for {
 		conn, err := listen.Accept()
 		if err != nil {
@@ -28,18 +29,18 @@ func server(name string, port uint16) error {
 			continue
 		}
 
-		go handleClient(name, conn)
+		go handleClient(name, conn, kv_map)
 	}
 }
 
-func handleClient(name string, conn net.Conn) {
-	err := _handleClient(name, conn)
+func handleClient(name string, conn net.Conn, kv_map *SafeMap) {
+	err := _handleClient(name, conn, kv_map)
 	if err != nil {
 		log.Println(name, "error handling client:", err.Error())
 	}
 }
 
-func _handleClient(name string, conn net.Conn) error {
+func _handleClient(name string, conn net.Conn, kv_map *SafeMap) error {
 	defer func(conn net.Conn) {
 		_ = conn.Close()
 	}(conn)
@@ -51,6 +52,11 @@ func _handleClient(name string, conn net.Conn) error {
 		msg := &gen.MyMessage{}
 		err := readMsg(name, reader, msg)
 		if err != nil {
+			if err.Error() == "no response mode enabled" {
+				// 处理不应答模式的情况
+				log.Println(name, "检测到不应答模式，跳过处理")
+				return nil // 或其他逻辑
+			}
 			if err == io.EOF {
 				return nil
 			}
@@ -58,6 +64,21 @@ func _handleClient(name string, conn net.Conn) error {
 		}
 
 		log.Println(name, "received message: ", msg.Content)
+		request_type, kv_data, err := decode_request(msg.Content)
+
+		if err != nil {
+			return err
+		}
+		if request_type == 0 {
+			kv_map.Insert(kv_data.key, kv_data.value.value, kv_data.value.serial_number)
+		} else if request_type == 1 {
+			value, exist := kv_map.Query(kv_data.key)
+			if exist {
+				msg.Content = value
+			} else {
+				msg.Content = ""
+			}
+		}
 
 		watchAppendMessage(fmt.Sprintf("%s %s", name, msg))
 		// 将消息内容回显给客户端
